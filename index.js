@@ -41,29 +41,32 @@ app.post("/getFullAnswer", async (req, res) => {
 
 app.post("/pushAnswer", async (req, res) => {
   const question = req.query.question;
+  console.log("pushAnswer");
+  console.log(question);
   const answer = req.query.answer;
-  if (question && answer) {
-    await db
-      .query(`insert into questions(text) values (?)`, [question])
-      .catch((err) => {
-        console.log(err);
-      });
 
-    try {
-      await db.query(
-        `insert into answers(text, question_id) values (?, (select id from questions where text = (?)))`,
-        [answer, question]
-      );
-      res.status(201).send("OK");
-    } catch (err) {
-      if (err.message.includes(`You have an error in your SQL syntax`))
-        console.log(err);
-
-      if (err.message.includes(`Duplicate entry`)) {
-        console.log(`Дублікат питання: ${question} - ${answer}`);
-      }
+  await db
+    .query(`insert into questions(text) values (?)`, [question])
+    .catch((err) => {
+      console.log(err);
       res.json({ message: "NOT OK" });
+    });
+
+  try {
+    await db.query(
+      `insert into answers(text, question_id) values (?, (select id from questions where text = (?)))`,
+      [answer, question]
+    );
+    res.status(201).send("OK");
+  } catch (err) {
+    console.log(err);
+    if (err.message.includes(`You have an error in your SQL syntax`))
+      console.log(err);
+
+    if (err.message.includes(`Duplicate entry`)) {
+      console.log(`Дублікат питання: ${question} - ${answer}`);
     }
+    res.json({ message: "NOT OK" });
   }
 });
 
