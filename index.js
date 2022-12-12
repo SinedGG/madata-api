@@ -21,8 +21,35 @@ const db = mysql.createPool({
   multipleStatements: true,
 });
 
+app.post("/pushAnswer", async (req, res) => {
+  const data = req.body.data;
+  var s = data.length;
+  for (let i = 0; i < data.length; i++) {
+    console.log(data[i]);
+    await db
+      .query(`insert into questions(text) values (?)`, [data[i].q])
+      .catch((err) => {
+        if (!err.message.includes(`Duplicate entry`)) console.log(err);
+      });
+
+    await db
+      .query(
+        `insert into answers(text, question_id) values (?, (select id from questions where text = (?)))`,
+        [data[i].a, data[i].q]
+      )
+      .catch((err) => {
+        if (err.message.includes(`Duplicate entry`)) {
+          s--;
+        } else {
+          console.log(err);
+        }
+      });
+  }
+  res.status(201).send({ num: s });
+});
+
 app.post("/getAnswer", async (req, res) => {
-  const question = req.query.question;
+  const question = req.body.q;
   const [answer] = await db.query(
     `SELECT answers.text FROM questions INNER join answers ON questions.id = answers.question_id WHERE questions.text = ?`,
     [question]
@@ -37,37 +64,6 @@ app.post("/getFullAnswer", async (req, res) => {
     [question]
   );
   res.json({ out });
-});
-
-app.post("/pushAnswer", async (req, res) => {
-  const question = req.query.question;
-  console.log("pushAnswer");
-  console.log(question);
-  const answer = req.query.answer;
-
-  await db
-    .query(`insert into questions(text) values (?)`, [question])
-    .catch((err) => {
-      console.log(err);
-      res.json({ message: "NOT OK" });
-    });
-
-  try {
-    await db.query(
-      `insert into answers(text, question_id) values (?, (select id from questions where text = (?)))`,
-      [answer, question]
-    );
-    res.status(201).send("OK");
-  } catch (err) {
-    console.log(err);
-    if (err.message.includes(`You have an error in your SQL syntax`))
-      console.log(err);
-
-    if (err.message.includes(`Duplicate entry`)) {
-      console.log(`Дублікат питання: ${question} - ${answer}`);
-    }
-    res.json({ message: "NOT OK" });
-  }
 });
 
 app.listen(port, () => {
