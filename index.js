@@ -57,13 +57,35 @@ app.post("/getAnswer", async (req, res) => {
   res.json({ answer: answer });
 });
 
-app.post("/getFullAnswer", async (req, res) => {
-  const question = req.query.question;
+app.post("/search", async (req, res) => {
+  const param = req.body.q;
   const [out] = await db.query(
-    `SELECT questions.text as questions, answers.text as answers FROM questions INNER join answers ON questions.id = answers.question_id WHERE questions.text LIKE concat('%', ?, '%')`,
-    [question]
+    `SELECT questions.text as questions, answers.text as answers FROM questions INNER join answers ON questions.id = answers.question_id WHERE questions.text LIKE concat('%', ?, '%') OR answers.text LIKE concat('%', ?, '%')`,
+    [param, param]
   );
-  res.json({ out });
+  res.json({ data: out });
+});
+
+app.post("/pageOutput", async (req, res) => {
+  const param = req.body;
+  if (
+    !param.hasOwnProperty("limit") &&
+    !param.hasOwnProperty("page") &&
+    !param.limit.isInteger() &&
+    !param.page.isInteger()
+  )
+    return res.status(422);
+
+  var [data] = await db.query(
+    `SELECT questions.text as questions, answers.text as answers FROM questions INNER join answers ON questions.id = answers.question_id LIMIT ? OFFSET ?`,
+    [param.limit, param.page]
+  );
+  res.status(200).send(data);
+});
+
+app.post("/rowCount", async (req, res) => {
+  var [data] = await db.query(`SELECT COUNT(text) AS count FROM questions`);
+  res.send({ rows: data[0].count });
 });
 
 app.listen(port, () => {
