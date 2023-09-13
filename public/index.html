@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>madata</title>
+  </head>
+  <body>
+    <table id="myTable" border="1" cellpadding="7" cellspacing="7">
+      <thead>
+        <tr>
+          <th>№</th>
+          <th>Питання</th>
+          <th>Відповідь</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+      const table = document.getElementById("myTable");
+
+      function fetchData() {
+        const url = `http://localhost:3000/answers/withQuestion`;
+
+        axios.get(url).then((res) => {
+          const { data } = res;
+          for (var i = 0; i < data.length; i++) {
+            const row = table.insertRow();
+
+            const cell = row.insertCell();
+            cell.innerHTML = i + 1;
+
+            const cell1 = row.insertCell();
+            cell1.innerHTML = data[i].q;
+
+            const cell2 = row.insertCell();
+            cell2.innerHTML = data[i].a;
+          }
+        });
+      }
+
+      fetchData();
+    </script>
+  </body>
+</html>
