@@ -19,7 +19,7 @@
       const table = document.getElementById("myTable");
 
       function fetchData() {
-        const url = `http://localhost:3000/answers/withQuestion`;
+        const url = `https://madata.sded.cc/answers/withQuestion`;
 
         axios.get(url).then((res) => {
           const { data } = res;
