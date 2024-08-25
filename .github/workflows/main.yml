@@ -4,10 +4,10 @@ on: workflow_dispatch
 
 env:
   SERVER_HOST: ${{ secrets.SERVER_IP }}
-  SERVER_USER: ubuntu
-  SERVER_PATH: /home/ubuntu/pm/madata-api
+  SERVER_USER: root
+  SERVER_PATH: /var/pm2/apps/madata-api
 
-  CONFIG_LOCATION: /home/ubuntu/config/madata.config.js
+  CONFIG_LOCATION: /var/pm2/configs/madata.config.js
 
 jobs:
   deploy:
